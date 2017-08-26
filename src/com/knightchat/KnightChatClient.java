@@ -16,6 +16,7 @@ public class KnightChatClient {
     private String mHandle;
 
     static Scanner scanner;
+    Socket socket;
     BufferedReader in;
     PrintWriter out;
 
@@ -52,39 +53,55 @@ public class KnightChatClient {
         // Make connection and initialize streams
         String serverAddress = getServerAddress();
         try {
-            Socket socket = new Socket(serverAddress, PORT);
+            socket = new Socket(serverAddress, PORT);
             in = new BufferedReader(new InputStreamReader(
                     socket.getInputStream()));
             out = new PrintWriter(socket.getOutputStream(), true);
 
             // Process all messages from server, according to the protocol.
             while (true) {
-                String line = in.readLine();
+                if (!socket.isClosed() && in.ready()) {
+                    String line = in.readLine();
 
-                if (line == null) {
-                    System.out.println("WARN: The server has shut down.");
-                    break;
-                }
-                if (line.startsWith("SUBMITNAME")) {
-                    mHandle = getName();
-                    out.println(mHandle);
-                } else if (line.startsWith("NAMEACCEPTED")) {
-                    System.out.println("You have successfully joined KnightChat at "+ serverAddress + "!");
-                    System.out.print("> ");
-                    new Thread(new Runnable() {
-                        @Override
-                        public void run() {
-                            readInput();
-                        }
-                    }).start();
-                } else if (line.startsWith("MESSAGE")) {
-                    if (!line.substring(8).startsWith(mHandle + ":")) System.out.print((line.substring(8) + "\n> "));
+                    if (line == null) {
+                        System.out.println("WARN: The server has shut down.");
+                        break;
+                    }
+                    if (line.startsWith("SUBMITNAME")) {
+                        mHandle = getName();
+                        out.println(mHandle);
+                    } else if (line.startsWith("NAMEACCEPTED")) {
+                        System.out.println("You have successfully joined KnightChat at " + serverAddress + "!");
+                        System.out.print("> ");
+                        new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                readInput();
+                            }
+                        }).start();
+                    } else if (line.startsWith("MESSAGE")) {
+                        if (!line.substring(8).startsWith(mHandle + ":")) System.out.print((line.substring(8) + "\n> "));
+                    } else if (line.startsWith("INFO")) {
+                        System.out.print((line.substring(5) + "\n> "));
+                    }
                 }
             }
         } catch (IOException e) {
             System.out.println("ERROR: Failed to connect to KnightChat server");
             e.printStackTrace();
         }
+    }
+
+    private void stop() {
+        try {
+            socket.close();
+            in.close();
+            out.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        System.out.println("INFO: You have disconnected from the server.");
+        run();
     }
 
     public static void main(String[] args) {
@@ -100,9 +117,54 @@ public class KnightChatClient {
 
     public void readInput() {
         String input = scanner.nextLine();
-        out.println(input);
+        if (input.startsWith("/")) {
+            runCommand(input.substring(1));
+        } else out.println(input);
         System.out.print("> ");
         readInput();
+    }
+
+    public void runCommand(String command) {
+        String[] clauses = command.split(" ");
+
+        String primaryCommand = clauses[0];
+
+        switch (primaryCommand) {
+
+            /**
+             * /dc or /disconnect disconnects client from server
+             */
+            case "dc":
+                stop();
+                break;
+            case "disconnect":
+                stop();
+                break;
+
+            /**
+             * /users lists all the users connected
+             */
+            case "users":
+                out.println("/users");
+                break;
+
+            /**
+             * /mute stops the client from displaying new messages
+             */
+            case "mute":
+
+                break;
+
+            /**
+             * /unmute is self-explanatory
+             */
+            case "unmute":
+
+                break;
+            default:
+                System.out.println("Unrecognized command");
+                break;
+        }
     }
 
     public static boolean isValidIP (String ip) {
