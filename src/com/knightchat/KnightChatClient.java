@@ -1,5 +1,6 @@
 package com.knightchat;
 
+import org.jline.reader.Buffer;
 import org.jline.reader.LineReader;
 import org.jline.reader.LineReaderBuilder;
 import org.jline.terminal.Terminal;
@@ -99,12 +100,13 @@ public class KnightChatClient {
     }
 
     private void printAndMoveCursor(String string) {
+        Buffer buffer = reader.getBuffer().copy();
         reader.getTerminal().puts(InfoCmp.Capability.carriage_return);
         reader.getTerminal().writer().print(string);
         reader.callWidget(LineReader.REDRAW_LINE);
         reader.callWidget(LineReader.REDISPLAY);
         reader.getTerminal().writer().flush();
-
+        //must find a way to place text in the input prompt
     }
 
     private void stop() {
