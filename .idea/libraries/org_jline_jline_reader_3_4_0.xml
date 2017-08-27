@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="org.jline:jline-reader:3.4.0" type="repository">
+    <properties maven-id="org.jline:jline-reader:3.4.0" />
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/org/jline/jline-reader/3.4.0/jline-reader-3.4.0.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/org/jline/jline-terminal/3.4.0/jline-terminal-3.4.0.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

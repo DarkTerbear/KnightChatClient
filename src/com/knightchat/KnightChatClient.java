@@ -1,5 +1,11 @@
 package com.knightchat;
 
+import org.jline.reader.LineReader;
+import org.jline.reader.LineReaderBuilder;
+import org.jline.terminal.Terminal;
+import org.jline.terminal.TerminalBuilder;
+import org.jline.utils.InfoCmp;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -17,8 +23,10 @@ public class KnightChatClient {
 
     static Scanner scanner;
     Socket socket;
-    BufferedReader in;
-    PrintWriter out;
+    BufferedReader socketIn;
+    PrintWriter socketOut;
+    static Terminal terminal;
+    static LineReader reader;
 
     public KnightChatClient() {
         System.out.println("INFO: KnightChat client initializing...");
@@ -54,14 +62,14 @@ public class KnightChatClient {
         String serverAddress = getServerAddress();
         try {
             socket = new Socket(serverAddress, PORT);
-            in = new BufferedReader(new InputStreamReader(
+            socketIn = new BufferedReader(new InputStreamReader(
                     socket.getInputStream()));
-            out = new PrintWriter(socket.getOutputStream(), true);
+            socketOut = new PrintWriter(socket.getOutputStream(), true);
 
             // Process all messages from server, according to the protocol.
             while (true) {
-                if (!socket.isClosed() && in.ready()) {
-                    String line = in.readLine();
+                if (!socket.isClosed() && socketIn.ready()) {
+                    String line = socketIn.readLine();
 
                     if (line == null) {
                         System.out.println("WARN: The server has shut down.");
@@ -69,7 +77,7 @@ public class KnightChatClient {
                     }
                     if (line.startsWith("SUBMITNAME")) {
                         mHandle = getName();
-                        out.println(mHandle);
+                        socketOut.println(mHandle);
                     } else if (line.startsWith("NAMEACCEPTED")) {
                         System.out.println("You have successfully joined KnightChat at " + serverAddress + "!");
                         System.out.print("> ");
@@ -80,9 +88,9 @@ public class KnightChatClient {
                             }
                         }).start();
                     } else if (line.startsWith("MESSAGE")) {
-                        if (!line.substring(8).startsWith(mHandle + ":")) System.out.print((line.substring(8) + "\n> "));
+                        if (!line.substring(8).startsWith(mHandle + ":")) printAndMoveCursor((line.substring(8) + "\n> "));
                     } else if (line.startsWith("INFO")) {
-                        System.out.print((line.substring(5) + "\n> "));
+                        printAndMoveCursor((line.substring(5) + "\n> "));
                     }
                 }
             }
@@ -92,11 +100,20 @@ public class KnightChatClient {
         }
     }
 
+    private void printAndMoveCursor(String string) {
+        reader.getTerminal().puts(InfoCmp.Capability.carriage_return);
+        reader.getTerminal().writer().print(string);
+        //reader.callWidget(LineReader.REDRAW_LINE);
+        //reader.callWidget(LineReader.REDISPLAY);
+        reader.getTerminal().writer().flush();
+
+    }
+
     private void stop() {
         try {
             socket.close();
-            in.close();
-            out.close();
+            socketIn.close();
+            socketOut.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -105,9 +122,12 @@ public class KnightChatClient {
     }
 
     public static void main(String[] args) {
-        scanner = new Scanner(System.in);
-        KnightChatClient client = new KnightChatClient();
+
         try {
+            terminal = TerminalBuilder.builder().name("KnightChat Client v0.1").build();
+            reader = LineReaderBuilder.builder().terminal(terminal).build();
+            scanner = new Scanner(System.in);
+            KnightChatClient client = new KnightChatClient();
             client.run();
         } catch (Exception e) {
             System.out.println("FATAL: KnightChat client initialization failed");
@@ -119,7 +139,7 @@ public class KnightChatClient {
         String input = scanner.nextLine();
         if (input.startsWith("/")) {
             runCommand(input.substring(1));
-        } else out.println(input);
+        } else socketOut.println(input);
         System.out.print("> ");
         readInput();
     }
@@ -145,7 +165,7 @@ public class KnightChatClient {
              * /users lists all the users connected
              */
             case "users":
-                out.println("/users");
+                socketOut.println("/users");
                 break;
 
             /**

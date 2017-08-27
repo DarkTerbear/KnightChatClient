@@ -3,6 +3,8 @@
     <output-path>$PROJECT_DIR$/out/artifacts/KnightChatClient_jar</output-path>
     <root id="archive" name="KnightChatClient.jar">
       <element id="module-output" name="KnightChatClient" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/jline/jline-reader/3.4.0/jline-reader-3.4.0.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/jline/jline-terminal/3.4.0/jline-terminal-3.4.0.jar" path-in-jar="/" />
     </root>
   </artifact>
 </component>
