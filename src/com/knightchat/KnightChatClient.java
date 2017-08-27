@@ -11,7 +11,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
-import java.util.Scanner;
 
 /**
  * Created by tyli on 8/25/17.
@@ -21,7 +20,6 @@ public class KnightChatClient {
 
     private String mHandle;
 
-    static Scanner scanner;
     Socket socket;
     BufferedReader socketIn;
     PrintWriter socketOut;
@@ -37,7 +35,7 @@ public class KnightChatClient {
 
         while (true) {
             System.out.print("Please enter the IP address of the KnightChat server: ");
-            ip = scanner.nextLine();
+            ip = reader.readLine();
             if (!isValidIP(ip)) System.out.println("\nInvalid IP input!");
             else break;
         }
@@ -49,7 +47,7 @@ public class KnightChatClient {
 
         while (true) {
             System.out.print("Please enter your handle: ");
-            name = scanner.nextLine();
+            name = reader.readLine();
             if (name == null || name.isEmpty()) System.out.println("\nInvalid name input!");
             else break;
         }
@@ -103,8 +101,8 @@ public class KnightChatClient {
     private void printAndMoveCursor(String string) {
         reader.getTerminal().puts(InfoCmp.Capability.carriage_return);
         reader.getTerminal().writer().print(string);
-        //reader.callWidget(LineReader.REDRAW_LINE);
-        //reader.callWidget(LineReader.REDISPLAY);
+        reader.callWidget(LineReader.REDRAW_LINE);
+        reader.callWidget(LineReader.REDISPLAY);
         reader.getTerminal().writer().flush();
 
     }
@@ -126,7 +124,6 @@ public class KnightChatClient {
         try {
             terminal = TerminalBuilder.builder().name("KnightChat Client v0.1").build();
             reader = LineReaderBuilder.builder().terminal(terminal).build();
-            scanner = new Scanner(System.in);
             KnightChatClient client = new KnightChatClient();
             client.run();
         } catch (Exception e) {
@@ -136,10 +133,13 @@ public class KnightChatClient {
     }
 
     public void readInput() {
-        String input = scanner.nextLine();
-        if (input.startsWith("/")) {
-            runCommand(input.substring(1));
-        } else socketOut.println(input);
+        String input = reader.readLine();
+        if (!input.isEmpty()) {
+            if (input.startsWith("/")) {
+                runCommand(input.substring(1));
+            } else socketOut.println(input);
+
+        }
         System.out.print("> ");
         readInput();
     }
