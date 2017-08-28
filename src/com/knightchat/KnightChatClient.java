@@ -79,7 +79,6 @@ public class KnightChatClient {
                         socketOut.println(mHandle);
                     } else if (line.startsWith("NAMEACCEPTED")) {
                         System.out.println("You have successfully joined KnightChat at " + serverAddress + "!");
-                        System.out.print("> ");
                         new Thread(new Runnable() {
                             @Override
                             public void run() {
@@ -87,9 +86,9 @@ public class KnightChatClient {
                             }
                         }).start();
                     } else if (line.startsWith("MESSAGE")) {
-                        if (!line.substring(8).startsWith(mHandle + ":")) printAndMoveCursor((line.substring(8) + "\n> "));
+                        if (!line.substring(8).startsWith(mHandle + ":")) printAndMoveCursor((line.substring(8) + "\n"));
                     } else if (line.startsWith("INFO")) {
-                        printAndMoveCursor((line.substring(5) + "\n> "));
+                        printAndMoveCursor((line.substring(5) + "\n"));
                     }
                 }
             }
@@ -100,7 +99,6 @@ public class KnightChatClient {
     }
 
     private void printAndMoveCursor(String string) {
-        Buffer buffer = reader.getBuffer().copy();
         reader.getTerminal().puts(InfoCmp.Capability.carriage_return);
         reader.getTerminal().writer().print(string);
         reader.callWidget(LineReader.REDRAW_LINE);
@@ -142,7 +140,6 @@ public class KnightChatClient {
             } else socketOut.println(input);
 
         }
-        System.out.print("> ");
         readInput();
     }
 
