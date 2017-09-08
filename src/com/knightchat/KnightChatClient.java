@@ -7,6 +7,8 @@ import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
 import org.jline.utils.InfoCmp;
 
+import java.awt.*;
+import java.awt.event.KeyEvent;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -26,6 +28,7 @@ public class KnightChatClient {
     PrintWriter socketOut;
     static Terminal terminal;
     static LineReader reader;
+    Robot robot;
 
     public KnightChatClient() {
         System.out.println("INFO: KnightChat client initializing...");
@@ -59,6 +62,11 @@ public class KnightChatClient {
     private void run() {
         // Make connection and initialize streams
         String serverAddress = getServerAddress();
+        try {
+            robot = new Robot();
+        } catch (AWTException e) {
+            e.printStackTrace();
+        }
         try {
             socket = new Socket(serverAddress, PORT);
             socketIn = new BufferedReader(new InputStreamReader(
@@ -100,13 +108,29 @@ public class KnightChatClient {
     }
 
     private void printAndMoveCursor(String string) {
-        Buffer buffer = reader.getBuffer().copy();
+        String buffer = reader.getBuffer().copy().toString();
         reader.getTerminal().puts(InfoCmp.Capability.carriage_return);
         reader.getTerminal().writer().print(string);
         reader.callWidget(LineReader.REDRAW_LINE);
         reader.callWidget(LineReader.REDISPLAY);
         reader.getTerminal().writer().flush();
-        //must find a way to place text in the input prompt
+        writeString(buffer);
+    }
+
+    private void writeString(String s) {
+        for (int i = 0; i < s.length(); i++) {
+            char c = s.charAt(i);
+            if (Character.isUpperCase(c)) {
+                robot.keyPress(KeyEvent.VK_SHIFT);
+            }
+            robot.keyPress(Character.toUpperCase(c));
+            robot.keyRelease(Character.toUpperCase(c));
+
+            if (Character.isUpperCase(c)) {
+                robot.keyRelease(KeyEvent.VK_SHIFT);
+            }
+        }
+        robot.delay(5);
     }
 
     private void stop() {
